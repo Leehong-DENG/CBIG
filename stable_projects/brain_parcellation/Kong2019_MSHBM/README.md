@@ -15,6 +15,18 @@ variability for inter-subject differences.
 
 ![main_figures_from_paper](readme_figures/MSHBM_parcellations.png)
 
+
+Parcellation Release
+====
+
+The 17-network individual parcellations for HCP subjects can be downloaded from here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/tree/main/Parcellations/17
+
+The subject list can be found here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/blob/main/HCP_subject_list.txt
+
 Code Release
 ====
 
@@ -26,7 +38,7 @@ The code utilized in this study include three steps:
 - `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2019_MSHBM/step1_generate_profiles_and_ini_params/CBIG_MSHBM_avg_profiles.m`
 - `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2019_MSHBM/step1_generate_profiles_and_ini_params/CBIG_MSHBM_generate_ini_params.m`
 
-**Step 2: estimating group priors**
+**Step 2: estimating group priors [optional. Skip if the user uses our pre-trained group priors]**
    
 - `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2019_MSHBM/step2_estimate_priors/CBIG_MSHBM_estimate_group_priors.m`
    
@@ -41,26 +53,20 @@ We provide detailed examples on how to generate functional connectivity profiles
 
 **Group priors**
 
-We provide group priors estimated by 37 GSP subjects (`fsaverage5` surface space) and 40 HCP subjects (`fs_LR_32k` surface space). The priors can be found in `lib/group_priors` folder. The ordering of the 17 networks can also be found in this folder.
-
-**Individual parcellations**
-
-The individual 17-network parcellations of HCP data are not included in the current repository. Contact us if you want us to send you the parcellations.
-
-
+We provide group priors estimated by 37 GSP subjects (`fsaverage5` surface space) and 40 HCP subjects (`fs_LR_32k` and `fsaverage6` surface space). The priors can be found in `lib/group_priors` folder. The ordering of the 17 networks can also be found in this folder. If the user used our group priors, the step2 can be skipped.
 
 **Download**
 
 To download the version of the code that is last tested, you can either
 
-- visit this link: [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.18.0-Xue2021_IndCerebellum](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.18.0-Xue2021_IndCerebellum)
+- visit this link: [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.9-MSHBM_NetworkAreal_Updates](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.9-MSHBM_NetworkAreal_Updates)
 
 or
 
 - run the following command, if you have Git installed
 
 ```
-git checkout -b Kong2019_MSHBM v0.18.0-Xue2021_IndCerebellum
+git checkout -b MSHBM_NetworkAreal_Updates v0.29.9-MSHBM_NetworkAreal_Updates
 ```
 
 ----
@@ -68,7 +74,47 @@ git checkout -b Kong2019_MSHBM v0.18.0-Xue2021_IndCerebellum
 Usage
 ====
 
-Our code will work for fMRI surface data on `fsaverage5` surface space (nifti format), or on `fs_LR_32k` surface space (cifti format, .dtseries.nii file with 64k vertices). The code should also be applicable for data in `fsaverage4/6/7`, contact us if there is any bug.
+Our code will work for fMRI surface data on `fsaverage5/6` surface space (nifti format), or on `fs_LR_32k` surface space (cifti format, .dtseries.nii file with 64k vertices). Contact us if there is any bug.
+
+### IMPORTANT NEW FEATURE: A simplified version of the code is now available for the users who only want to generate individual parcellations (i.e. no need to train group prios). The user can skip the group priors estimation step and directly use our pre-trained group priors.
+
+To do that, the user can just specify the required paths and call `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2019_MSHBM/CBIG_MSHBM_parcellation_single_subject.m`.
+
+```
+% Example for a subject with 1 run of fsaverage6 fMRI data:
+params.project_dir = '/myproject/sub1';
+params.censor_list = '/mydata/sub1/censor.txt';
+params.lh_fMRI_list = '/mydata/sub1/lh.fsaverage6_surf.nii.gz';
+params.rh_fMRI_list = '/mydata/sub1/rh.fsaverage6_surf.nii.gz';
+params.target_mesh = 'fsaverage6';
+CBIG_MSHBM_parcellation_single_subject(params);
+```
+```
+% Example for a subject with 2 runs of fs_LR_32k fMRI data:
+params.project_dir = '/myproject/sub1';
+params.censor_list = {'/mydata/sub1/censor1.txt', '/mydata/sub1/censor2.txt'};
+params.lh_fMRI_list = {'/mydata/sub1/fs_LR_32k_sess1_surf.dtseries.nii',...
+  '/mydata/sub1/fs_LR_32k_sess2_surf.dtseries.nii'};
+params.target_mesh = 'fs_LR_32k';
+CBIG_MSHBM_parcellation_single_subject(params);
+```
+```
+% Example for a subject with 2 runs of fsaverage5 fMRI data and specify all parameters:
+params.project_dir = '/myproject/sub1';
+params.censor_list = {'/mydata/sub1/censor1.txt', '/mydata/sub1/censor2.txt'};
+params.lh_fMRI_list = {'/mydata/sub1/lh.fsaverage5_sess1_surf.nii.gz',...
+  '/mydata/sub1/lh.fsaverage5_sess2_surf.nii.gz'};
+params.rh_fMRI_list = {'/mydata/sub1/rh.fsaverage5_sess1_surf.nii.gz',...
+  '/mydata/sub1/rh.fsaverage5_sess2_surf.nii.gz'};
+params.target_mesh = 'fsaverage5';
+params.w = '100';
+params.c = '30';
+params.group_prior = '/myproject/training_step/priors/Params_Final.mat';
+params.overwrite_flag = 1;
+CBIG_MSHBM_parcellation_single_subject(params);
+```
+
+
 
 ### Step 1: Generating profiles and initialization parameters
 ----
@@ -78,19 +124,19 @@ To generate the functional connectivity profiles, we assume the input fMRI lists
 The fMRI lists for each subject and each session, each line is the full path to the nifti/cifti file which corresponds to each run.
 
 - **`<output_dir>/data_list/fMRI_list`**
-	+ `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
-	+ `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
-	
-	for data in `fsaverage5`  or
+    + `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
+    + `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
 
-	+ `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
-	
+    for data in `fsaverage5`  or
+
+    + `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
+
     for data in `fs_LR_32k`.
   
 The censor lists for each subject and each session, each line is the full path to the censor file which corresponds to each run. The censor file should be a text file contains a single binary number column with the length equals to the number of time points, the outliers are indicated by 0s. The outliers will be ignored in generating profiles. If the user doesn't want to ignore the outliers just leave the `censor_list` folder empty.
 
 - **`<output_dir>/data_list/censor_list`**
-	+ `<output_dir>/data_list/censor_list/sub?_sess?.txt`
+    + `<output_dir>/data_list/censor_list/sub?_sess?.txt`
 
 In the terminal:
 ```
@@ -199,7 +245,7 @@ CBIG_MSHBM_generate_ini_params(seed_mesh,targ_mesh,num_clusters,num_initializati
 + `<output_dir>/group/group.mat`
 
 
-### Step 2: Group priors estimation
+### Step 2: Group priors estimation [optional. Skip if the user uses our pre-trained group priors]
 ----
 
 To generate the individual parcellation, MSHBM need to estimate group priors first. We provide two sets of group priors for data in `fsaverage5` space and `fs_LR_32k` space, which were generated by:
@@ -223,7 +269,7 @@ contains the initialization parameters from group-level 17-network clustering ge
     
     + `<output_dir>/profile_list/training_set/sess?.txt`
 
-	for data in `fs_LR_32k`.
+    for data in `fs_LR_32k`.
     
 contain functional connectivity profiles.
 
@@ -280,18 +326,18 @@ Assuming each validation subject has `T` sessions, the individual parcellation w
     
     + `<output_dir>/profile_list/test_set/sess?.txt`
 
-	for data in `fs_LR_32k`.
+    for data in `fs_LR_32k`.
     
 We will use the remaining `T-T1` sessions to compute the homogeneity metric, the fMRI files of the remaining sessions should be saved in:
 
 - `<output_dir>/data_list/validation_fMRI_list`
-	+ `<output_dir>/data_list/validation_fMRI_list/lh_sub?.txt`
-	+ `<output_dir>/data_list/validation_fMRI_list/rh_sub?.txt`
+    + `<output_dir>/data_list/validation_fMRI_list/lh_sub?.txt`
+    + `<output_dir>/data_list/validation_fMRI_list/rh_sub?.txt`
 
-	for data in `fsaverage5`  or
+    for data in `fsaverage5`  or
     
     + `<output_dir>/data_list/validation_fMRI_list/sub?.txt`
-	
+
     for data in `fs_LR_32k`.
 
 
@@ -325,7 +371,7 @@ c_set = <a set of parameters for c> % e.g. c_set = [30 40 50 60];
 for i = 1:length(w_set)
     for j = 1:length(c_set)
         for sub = 1:num_validation_subjects
-		    homo_with_weight(sub,:) = CBIG_MSHBM_parameters_validation(output_dir,mesh,num_sess,num_clusters,num2str(sub), num2str(w_set(i)),num2str(c_set(j)));
+            homo_with_weight(sub,:) = CBIG_MSHBM_parameters_validation(output_dir,mesh,num_sess,num_clusters,num2str(sub), num2str(w_set(i)),num2str(c_set(j)));
         end
         homo(i,j) = mean(mean(homo_with_weight));
     end
@@ -350,7 +396,7 @@ The individual parcellation will be generated by functional connectivity profile
     
     + `<output_dir>/profile_list/test_set/sess?.txt`
 
-	for data in `fs_LR_32k`.
+    for data in `fs_LR_32k`.
     
 In the terminal:
 ```
@@ -372,7 +418,7 @@ run the following command:
 
 ```
 for subid = 1:num_test_sub
-	CBIG_MSHBM_generate_individual_parcellation(output_dir, mesh, num_sess, num_clusters, num2str(subid), w, c);
+    CBIG_MSHBM_generate_individual_parcellation(output_dir, mesh, num_sess, num_clusters, num2str(subid), w, c);
 end
 ```
 
@@ -387,19 +433,24 @@ The generated individual parcellations will be saved under:
 Updates
 =======
 
-- Release v0.6.0 (8/6/2018): initial release of Kong2019_MSHBM
+- Release v0.29.9 (07/03/2024): Add wrapper script to generate individual parcellations for single subject
 
-- Release v0.6.1 (10/6/2018): Release code of Kong2019_MSHBM
-
-- Release v0.9.2 (19/3/2019): Add validation scripts
-
-- Release v0.9.5 (4/4/2019): Allow training subjects to have different number of sessions
-
-- Release v0.15.3 (16/10/2019): Update reference; change min/max thresholds in `CBIG_DrawSurfaceMaps` plotting command
+- Release v0.18.0 (13/01/2021): Add optional arguments to support Xue2021_IndCerebellum
 
 - Release v0.17.0 (19/02/2020): Avoid using absolute paths. Add new environment variables to avoid possible problems caused by hard-coded absolute paths.
 
-- Release v0.18.0 (13/01/2021): Add optional arguments to support Xue2021_IndCerebellum
+- Release v0.15.3 (16/10/2019): Update reference; change min/max thresholds in `CBIG_DrawSurfaceMaps` plotting command
+
+- Release v0.9.5 (4/4/2019): Allow training subjects to have different number of sessions
+
+- Release v0.9.2 (19/3/2019): Add validation scripts
+
+- Release v0.6.1 (10/6/2018): Release code of Kong2019_MSHBM
+
+- Release v0.6.0 (8/6/2018): initial release of Kong2019_MSHBM
+
+
+
 
 Bugs and Questions
 ====

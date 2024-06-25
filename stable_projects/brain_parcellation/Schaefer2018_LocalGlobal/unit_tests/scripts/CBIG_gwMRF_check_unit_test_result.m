@@ -17,6 +17,9 @@ function [] = CBIG_gwMRF_check_unit_test_result(output_dir)
 % Written by Yang Qing and CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
 
 
+% check if replacing example results
+CBIG_CODE_DIR = getenv('CBIG_CODE_DIR');
+load(fullfile(CBIG_CODE_DIR, 'unit_tests', 'replace_unittest_flag'));
 
 ref_dir = fullfile(getenv('CBIG_TESTDATA_DIR'), 'stable_projects', ...
     'brain_parcellation', 'Schaefer2018_LocalGlobal', 'results');
@@ -29,7 +32,7 @@ fprintf('\n[CHECK 1]\t Concatenated time matrices \n');
 disp('-------------------------------------------------------------------');
 
 if(~exist(fullfile(output_dir, 'time_data', 'rh_time_matrix.mat'), 'file'))
-	fprintf('[FAILED]\t Time matrix missing! \n');
+    fprintf('[FAILED]\t Time matrix missing! \n');
 else
     % check if lh time matrices are the same
     ref_lh_time = load(fullfile(ref_dir, 'time_data', 'lh_time_matrix.mat'));
@@ -47,6 +50,11 @@ else
         fprintf('[PASSED]\t LH time matrices are the same \n');
     end 
     
+    if(replace_unittest_flag)
+        disp('Replacing reference results for lh concatenated time matrices...');
+        copyfile(fullfile(output_dir, 'time_data', 'lh_time_matrix.mat'),...
+         fullfile(ref_dir, 'time_data', 'lh_time_matrix.mat'));
+    end
     % release some memory
     clear ref_lh_time;
     clear lh_time;
@@ -66,7 +74,13 @@ else
     else
          fprintf('[PASSED]\t RH time matrices are the same \n');
     end
-    
+
+        
+    if(replace_unittest_flag)
+        disp('Replacing reference results for rh concatenated time matrices...');
+        copyfile(fullfile(output_dir, 'time_data', 'rh_time_matrix.mat'),...
+         fullfile(ref_dir, 'time_data', 'rh_time_matrix.mat'));
+    end
     % release some memory
     clear ref_rh_time;
     clear rh_time;
@@ -81,7 +95,7 @@ fprintf('\n[CHECK 2]\t Premultiplied product matrices \n');
 disp('-------------------------------------------------------------------');
 
 if(~exist(fullfile(output_dir, 'mult_mat', 'rh_mult_matrix.mat'), 'file'))
-	fprintf('[FAILED]\t Premultiplied product matrix missing! \n');
+    fprintf('[FAILED]\t Premultiplied product matrix missing! \n');
     
 else
     % check if lh mult matrices are the same
@@ -102,6 +116,11 @@ else
         fprintf('[PASSED]\t LH mult matrices are the same \n');
     end 
      
+    if(replace_unittest_flag)
+        disp('Replacing reference results for lh premultiplied product matrices...');
+        copyfile(load(fullfile(output_dir, 'mult_mat', 'lh_mult_matrix.mat')),...
+         fullfile(ref_dir, 'mult_mat', 'lh_mult_matrix.mat'));
+    end
     % release some memory
     clear ref_lh_mult;
     clear lh_mult;
@@ -124,6 +143,11 @@ else
          fprintf('[PASSED]\t RH mult matrices are the same \n');
     end
     
+    if(replace_unittest_flag)
+        disp('Replacing reference results for rh premultiplied product matrices...');
+        copyfile(load(fullfile(output_dir, 'mult_mat', 'rh_mult_matrix.mat')),...
+         fullfile(ref_dir, 'mult_mat', 'rh_mult_matrix.mat'));
+    end
     % release some memory
     clear ref_rh_mult;
     clear rh_mult;
@@ -140,7 +164,7 @@ prefix = 'Graph_Cut_faster__grad_prior_gordon_cluster_20_datacost_1_smoothcost_1
 file_seed2 = [prefix, '_seed_2_rh_reduction_iteration_1.mat'];
 
 if(~exist(fullfile(output_dir, 'clustering', 'inbetween_results', file_seed2), 'file'))
-	fprintf('[FAILED]\t Parcellation result missing! \n');
+    fprintf('[FAILED]\t Parcellation result missing! \n');
 else
     % start comparing seed 2
     ref_seed_2 = load(fullfile(ref_dir, 'clustering', 'inbetween_results', file_seed2));
@@ -159,6 +183,12 @@ else
         fprintf('[FAILED]\t RH intermediate parcellations of seed 2 are different, overlap_percentage = %f \n', ...
             abs(cost_rh)/37471);
     end
+end
+
+if(replace_unittest_flag)
+    disp('Replacing reference results for parcellation labels...');
+    copyfile(fullfile(output_dir, 'clustering', 'inbetween_results', file_seed2),...
+    fullfile(ref_dir, 'clustering', 'inbetween_results', file_seed2));
 end
 
 fprintf('[DONE]\t Unit test is done. \n');

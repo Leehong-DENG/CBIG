@@ -30,6 +30,31 @@ In this example, we will perform the algorithms on the functional connectivity p
 Run
 ====
 
+### [IMPORTANT NEW FEATURE] A simplified way to generate individual parcellation for a single subject
+----
+
+We now provide a simple way to generate individual parcellation for a single subject. The user only needs to specify paths to the fMRI data and censor files, the algorithm will automatically generate the profiles and use group priors to generate individual parcellation for a single subject.
+
+In the terminal, specify the paths:
+```
+params.project_dir = out_dir;
+
+% user can set their own group prior
+%params.group_prior = '<your_own>/priors/Params_Final.mat';
+
+params.censor_list = {fullfile(CBIG_CODE_DIR,'/data/example_data/CoRR_HNU/subj01/subj01_sess1/qc/subj01_sess1_bld002_FDRMS0.2_DVARS50_motion_outliers.txt')};
+params.lh_fMRI_list = {fullfile(CBIG_CODE_DIR,'/data/example_data/CoRR_HNU/subj01/subj01_sess1/surf/lh.subj01_sess1_bld002_rest_skip4_stc_mc_residc_interp_FDRMS0.2_DVARS50_bp_0.009_0.08_fs6_sm6.nii.gz')};
+params.rh_fMRI_list = {fullfile(CBIG_CODE_DIR,'/data/example_data/CoRR_HNU/subj01/subj01_sess1/surf/rh.subj01_sess1_bld002_rest_skip4_stc_mc_residc_interp_FDRMS0.2_DVARS50_bp_0.009_0.08_fs6_sm6.nii.gz')};
+params.target_mesh = 'fsaverage6';
+params.w = '50';
+params.c = '50';
+[lh_labels, rh_labels] = CBIG_MSHBM_parcellation_single_subject(params);
+```
+We have also provided a wrapper script the user can check:
++ $CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2019_MSHBM/examples/CBIG_MSHBM_example_single_subject.m
+
+The following section is the original example tutorial with more detailed steps. Please note the new feature only can generate parcellation for a single subject. It does not contain the training and validation steps.
+
 ### Generating input data
 ----
 
@@ -70,7 +95,7 @@ Start Matlab, in Matlab command window, run the following commands to generate p
 project_dir = '<output_dir>/generate_profiles_and_ini_params';
 for sub = 1:2
  for sess = 1:2
-	CBIG_MSHBM_generate_profiles('fsaverage3','fsaverage5',project_dir,num2str(sub),num2str(sess),'0');
+    CBIG_MSHBM_generate_profiles('fsaverage3','fsaverage5',project_dir,num2str(sub),num2str(sess),'0');
  end
 end
 ```
@@ -222,7 +247,7 @@ c_set = [30 40 50 60];
 for i = 1:length(w_set)
     for j = 1:length(c_set)
         for sub = 1:2
-		    homo_with_weight(sub,:) = CBIG_MSHBM_parameters_validation(project_dir,'fsaverage5','2','17',num2str(sub), num2str(w_set(i)),num2str(c_set(j)));
+            homo_with_weight(sub,:) = CBIG_MSHBM_parameters_validation(project_dir,'fsaverage5','2','17',num2str(sub), num2str(w_set(i)),num2str(c_set(j)));
         end
         homo(i,j) = mean(mean(homo_with_weight));
     end

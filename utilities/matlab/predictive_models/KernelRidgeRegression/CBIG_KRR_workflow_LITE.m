@@ -48,11 +48,11 @@ function CBIG_KRR_workflow_LITE( setup_param, save_setup, sub_fold_file, y_file,
 %     4. feature_mat
 %        A matrix of the features used as the independent variable in the
 %        prediction. See the description of See the description of `feature_file` 
-%	 in the Compulsory and Optional Variables section.
+%        in the Compulsory and Optional Variables section.
 %     5. num_inner_folds
 %        A scalar, the number of inner-loop cross-validation folds. See the
 %        description of `num_inner_folds` in the Compulsory and Optional
-%	 Variables section.
+%        Variables section.
 %     6. outdir
 %        A string of the output directory. See the description of
 %        `outdir` in the Compulsory and Optional Variables section.
@@ -62,19 +62,19 @@ function CBIG_KRR_workflow_LITE( setup_param, save_setup, sub_fold_file, y_file,
 %     8. with_bias
 %        A string (choose from '0' or '1') or a scalar (choose from 0 or 1).
 %        See the description of `with_bias` in the Compulsory and Optional 
-%	 Variables section
+%        Variables section
 %     9. ker_param 
 %        A structure of all possible kernel parameters. See the description
 %        of `ker_param_file` in the Compulsory and Optional Variables section
 %     10.lambda_set
 %        A vector of all possible regularization parameters used for grid
 %        search. See the description of `lambda_set_file` in the Compulsory
-%	 and Optional Variables section.
+%        and Optional Variables section.
 %     11.threshold_set
 %        A vector of all possible thresholds to determine the separation
 %        point for binary target variables in the prediction. See the
 %        description of `threshold_set_file` in the Compulsory and 
-%	 Optional Variables section.
+%        Optional Variables section.
 %     12.metric
 %        A string indicating the metric used to define prediction loss. See the
 %        description of `metric` in the Compulsory and Optional Variables section.
@@ -228,6 +228,45 @@ function CBIG_KRR_workflow_LITE( setup_param, save_setup, sub_fold_file, y_file,
 %       'MSE_norm'          - mean squared error divided by the variance
 %                             of the target variable of the traning set
 % 
+%  Outputs:
+%   Three subfolds and one file will be generated in the output directory: 
+%   'y', 'innerloop_cv', 'test_cv', 'final_result_<outstem>.mat'.
+%
+%    In 'y', this folder contains the original y values and the y values 
+%            after the covariates have been regressed for each fold.
+% 
+%    In 'innerloop_cv', this folder contains the accuracy, loss and predicted 
+%            y value for each lambda value for the innerloop. The results 
+%            are saved in a separate mat file for each fold.
+% 
+%    In 'test_cv', this folder contains the accuracy, loss and predicted y 
+%            value for each lambda value for the outerloop. The results are 
+%            saved in a separate mat file for each fold.
+%
+%   In 'final_result_<outstem>.mat', it contains final accuracies for the test 
+%            folds. A mat file with the following fields are generated:   
+%   - optimal_acc 
+%     Test accuracy for each fold (given in correlation).
+% 
+%   - optimal_kernel 
+%     A #outerfolds x #behaviors struct containing the kernel type selected 
+%     for each test fold.
+% 
+%   - optimal_lambda 
+%     A #outerfolds x #behaviors matrix containing lambda selected for each 
+%     test fold.
+% 
+%   - optimal_threshold 
+%     A #outerfolds x #behaviors matrix containing the threshold selected 
+%     for each test fold.
+% 
+%   - y_predict_concat 
+%     A #subjects x #behaviors matrix of predicted target values.
+% 
+%   - optimal_stats 
+%     A cell array storing the accuracies of each possible accuracy metric 
+%     (eg. corr, MAE, etc). Each cell array is #outerfolds x #behaviors.
+%
 % Written by Jingwei Li and CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
 
 %% Input arguments

@@ -37,11 +37,11 @@ If you want to use the code from our lab's other stable projects (other than He2
 ## Usage
 ### Environment setup
 - Our code uses MATLAB and Python, here are info about MATLAB and Python setup:
-	- MATLAB: we tested our code in MATLAB r2018b and r2014a (the example results for kernel regression cross validation are a little bit different between r2014a and r2018b. Other than this, all the example and replication results are same for r2014a and r2018b)
-	- Python
-		1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/distribution/#download-section) with Python 3.x if you don't have conda
-		2. Create conda environment from our `replication/config/CBIG_KRDNN_python_env.yml` file by `conda env create -f replication/config/CBIG_KRDNN_python_env.yml`
-		3. If you have keras installed, replace yours `$HOME/.keras/keras.json` with `replication/config/keras.json`. If not, create `$HOME/.keras/keras.json` with content of `replication/config/keras.json`
+    - MATLAB: we tested our code in MATLAB r2018b and r2014a (the example results for kernel regression cross validation are a little bit different between r2014a and r2018b. Other than this, all the example and replication results are same for r2014a and r2018b)
+    - Python
+        1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/distribution/#download-section) with Python 3.x if you don't have conda
+        2. Create conda environment from our `replication/config/CBIG_KRDNN_python_env.yml` file by `conda env create -f replication/config/CBIG_KRDNN_python_env.yml`
+        3. If you have keras installed, replace yours `$HOME/.keras/keras.json` with `replication/config/keras.json`. If not, create `$HOME/.keras/keras.json` with content of `replication/config/keras.json`
 
 ### Example
 - The example of our code is detailed in `examples/README.md`
@@ -52,21 +52,22 @@ If you want to use the code from our lab's other stable projects (other than He2
 ----
 
 ## Updates
-- Release v0.13.0 (10/07/2019): Initial release of He2019_KRDNN project
-- Release v0.13.2 (22/07/2019):
-    1. Update RNG generator in MATLAB for compatibility
-    2. Update title of paper in README files
-    3. Add information about hyperparameter in replication/README.md
-- Release v0.14.1 (03/09/2019):
-    1. Add trained models / weights of UK Biobank dataset
-    2. Optimize the speed of kernel regression scripts
+- Release v0.18.1 (20/01/2021):
+    1. Update unit test to accommodate to the new HPC.
 - Release v0.16.1 (11/02/2020):
     1. Update link of paper
     2. readme update
     3. unit test and example update
     4. config file update
-- Release v0.18.1 (20/01/2021):
-    1. Update unit test to accommodate to the new HPC.
+- Release v0.14.1 (03/09/2019):
+    1. Add trained models / weights of UK Biobank dataset
+    2. Optimize the speed of kernel regression scripts    
+- Release v0.13.2 (22/07/2019):
+    1. Update RNG generator in MATLAB for compatibility
+    2. Update title of paper in README files
+    3. Add information about hyperparameter in replication/README.md
+- Release v0.13.0 (10/07/2019): Initial release of He2019_KRDNN project
+
 ----
 
 ## Bugs and Questions

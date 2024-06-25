@@ -3,7 +3,7 @@
 
 References
 ==========
-+ Kong R, Yang Q, Gordon E, et al. [Individual-Specific Areal-Level Parcellations Improve Functional Connectivity Prediction of Behavior](https://doi.org/10.1093/cercor/bhab101). Cerebral Cortex. In press.
++ Kong R, Yang Q, Gordon E, et al. [Individual-Specific Areal-Level Parcellations Improve Functional Connectivity Prediction of Behavior](https://doi.org/10.1093/cercor/bhab101). Cerebral Cortex. 2021
 
 ----
 
@@ -13,6 +13,26 @@ Background
 We have previously developed a multi-session hierarchical Bayesian model (MS-HBM) for estimating high-quality individual-specific network-level parcellations. Here, we extend the model to estimate individual-specific areal-level parcellations. While network-level parcellations comprise spatially distributed networks spanning the cortex, the consensus is that areal-level parcels should be spatially localized, i.e., should not span multiple lobes. There is disagreement about whether areal-level parcels should be strictly contiguous or comprise multiple non-contiguous components, therefore we considered three areal-level MS-HBM variants spanning these range of possibilities: distributed MS-HBM (dMSHBM), contiguous MS-HBM (cMSHBM) and gradient-infused MS-HBM (gMSHBM). 
 
 ![main_figures_from_paper](readme_figures/MSHBMs_selected_parcels.jpeg)
+
+Parcellation and FC Release
+====
+
+The individual parcellations for HCP subjects with 100-1000 ROIs can be downloaded from here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/tree/main/Parcellations
+
+The subject list can be found here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/blob/main/HCP_subject_list.txt
+
+The #ROIx#ROI functional connectivity matrices for all HCP subjects with 100-1000 ROIs can be downloaded from here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/tree/main/FC
+
+Due to large file limit in Github, the FC files were saved as several sub-groups. The subject list for each sub-group can be found here:
+
+https://github.com/ThomasYeoLab/Kong2022_ArealMSHBM/tree/main/FC/HCP_sub_group_list
+
 
 Code Release
 ====
@@ -35,7 +55,7 @@ Generating initialization parameters:
 Generating spatial mask:
 - `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step1_generate_profiles_and_ini_params/CBIG_ArealMSHBM_generate_radius_mask.m`
 
-**Step 2: estimating group priors**
+**Step 2: estimating group priors [optional. Skip if the user uses our pre-trained group priors]**
 
 dMSHBM:
 - `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step2_estimate_priors/CBIG_ArealMSHBM_dMSHBM_estimate_group_priors_parent.m`
@@ -75,25 +95,20 @@ We provide detailed examples of above four steps in **`examples`** folder. **We 
 
 **Group priors**
 
-We provide pre-computed group priors of dMSHBM/cMSHBM/gMSHBM initializated by 100 to 1000-parcel Schaefer group-level parcellation. These priors were estimated by 40 HCP subjects (`fs_LR_32k` and `fsaverage6` surface space). The priors can be found in `lib/group_priors` folder.
-
-**Individual parcellations and RSFC matrices**
-
-The individual-specific areal-level parcellations and relevant 400x400 RSFC matrices of HCP data are not included in the current repository. We have uploaded then in BALSA: LINK_TO_BE_ADD.
-
+We provide pre-computed group priors of dMSHBM/cMSHBM/gMSHBM initializated by 100 to 1000-parcel Schaefer group-level parcellation. These priors were estimated by 40 HCP subjects (`fs_LR_32k` and `fsaverage6` surface space). The priors can be found in `lib/group_priors` folder. If the user used our group priors, the step2 can be skipped.
 
 **Download**
 
 To download the version of the code that is last tested, you can either
 
-- visit this link: [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.20.0-Kong2022_ArealMSHBM](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.20.0-Kong2022_ArealMSHBM)
+- visit this link: [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.9-MSHBM_NetworkAreal_Updates](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.9-MSHBM_NetworkAreal_Updates)
 
 or
 
 - run the following command, if you have Git installed
 
 ```
-git checkout -b Kong2022_ArealMSHBM v0.20.0-Kong2022_ArealMSHBM
+git checkout -b MSHBM_NetworkAreal_Updates v0.29.9-MSHBM_NetworkAreal_Updates
 ```
 
 ----
@@ -103,6 +118,46 @@ Usage
 
 Our code will work for fMRI surface data on `fsaverage6` surface space (nifti format), or on `fs_LR_32k` surface space (cifti format, .dtseries.nii file with 64k vertices). The code should also be applicable for data in `fsaverage4/5/7`, contact us if there is any bug.
 
+### IMPORTANT NEW FEATURE: A simplified version of the code is now available for the users who only want to generate individual parcellations (i.e. no need to train group prios). The user can skip previous steps and directly use our pre-trained group priors.
+
+To do that, the user can just specify the required paths and call `$CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/CBIG_ArealMSHBM_parcellation_single_subject.m`.
+
+```
+% Example for a subject with 1 run of fsaverage6 fMRI data:
+params.project_dir = '/myproject/sub1';
+params.censor_list = '/mydata/sub1/censor.txt';
+params.lh_fMRI_list = '/mydata/sub1/lh.fsaverage6_surf.nii.gz';
+params.rh_fMRI_list = '/mydata/sub1/rh.fsaverage6_surf.nii.gz';
+params.target_mesh = 'fsaverage6';
+CBIG_ArealMSHBM_parcellation_single_subject(params);
+```
+```
+% Example for a subject with 2 runs of fs_LR_32k fMRI data:
+params.project_dir = '/myproject/sub1';
+params.censor_list = {'/mydata/sub1/censor1.txt', '/mydata/sub1/censor2.txt'};
+params.lh_fMRI_list = {'/mydata/sub1/fs_LR_32k_sess1_surf.dtseries.nii',...
+  '/mydata/sub1/fs_LR_32k_sess2_surf.dtseries.nii'};
+params.target_mesh = 'fs_LR_32k';
+CBIG_ArealMSHBM_parcellation_single_subject(params);
+```
+```
+% Example for a subject with 2 runs of fsaverage6 fMRI data and specify all parameters:
+params.project_dir = '/myproject/sub1';
+params.censor_list = {'/mydata/sub1/censor1.txt', '/mydata/sub1/censor2.txt'};
+params.lh_fMRI_list = {'/mydata/sub1/lh.fsaverage6_sess1_surf.nii.gz',...
+  '/mydata/sub1/lh.fsaverage6_sess2_surf.nii.gz'};
+params.rh_fMRI_list = {'/mydata/sub1/rh.fsaverage6_sess1_surf.nii.gz',...
+  '/mydata/sub1/rh.fsaverage6_sess2_surf.nii.gz'};
+params.target_mesh = 'fsaverage6';
+params.model = 'dMSHBM';
+params.num_ROIs = '300';
+params.w = '50';
+params.c = '30';
+params.group_prior = '/myproject/training_step/priors/dMSHBM/Params_Final.mat';
+params.overwrite_flag = 1;
+CBIG_ArealMSHBM_parcellation_single_subject(params);
+```
+
 ### Step 0: generate diffusion embedding matrices for gradients [Optional, for gMSHBM only]
 ----
 
@@ -111,19 +166,19 @@ This step is only needed for gMSHBM. To generate the diffusion embedding matrice
 The fMRI lists for each subject and each session, each line is the full path to the nifti/cifti file which corresponds to each run.
 
 - **`<output_dir>/data_list/fMRI_list`**
-	+ `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
-	+ `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
-	
-	for data in `fsaverage6`  or
+    + `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
+    + `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
 
-	+ `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
-	
+    for data in `fsaverage6`  or
+
+    + `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
+
     for data in `fs_LR_32k`.
   
 The censor lists for each subject and each session, each line is the full path to the censor file which corresponds to each run. The censor file should be a text file contains a single binary number column with the length equals to the number of time points, the outliers are indicated by 0s. The outliers will be ignored in generating profiles. If the user doesn't want to ignore the outliers just leave the `censor_list` folder empty.
 
 - **`<output_dir>/data_list/censor_list`**
-	+ `<output_dir>/data_list/censor_list/sub?_sess?.txt`
+    + `<output_dir>/data_list/censor_list/sub?_sess?.txt`
 
 In the terminal:
 ```
@@ -156,19 +211,19 @@ To generate the functional connectivity profiles, we assume the input fMRI lists
 The fMRI lists for each subject and each session, each line is the full path to the nifti/cifti file which corresponds to each run.
 
 - **`<output_dir>/data_list/fMRI_list`**
-	+ `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
-	+ `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
-	
-	for data in `fsaverage6`  or
+    + `<output_dir>/data_list/fMRI_list/lh_sub?_sess?.txt`
+    + `<output_dir>/data_list/fMRI_list/rh_sub?_sess?.txt`
 
-	+ `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
-	
+    for data in `fsaverage6`  or
+
+    + `<output_dir>/data_list/fMRI_list/sub?_sess?.txt`
+
     for data in `fs_LR_32k`.
   
 The censor lists for each subject and each session, each line is the full path to the censor file which corresponds to each run. The censor file should be a text file contains a single binary number column with the length equals to the number of time points, the outliers are indicated by 0s. The outliers will be ignored in generating profiles. If the user doesn't want to ignore the outliers just leave the `censor_list` folder empty.
 
 - **`<output_dir>/data_list/censor_list`**
-	+ `<output_dir>/data_list/censor_list/sub?_sess?.txt`
+    + `<output_dir>/data_list/censor_list/sub?_sess?.txt`
 
 In the terminal:
 ```
@@ -326,7 +381,7 @@ CBIG_ArealMSHBM_generate_radius_mask_Schaefer(resolution, mesh, output_dir)
 + `<output_dir>/spatial_mask/spatial_mask_<mesh>.mat`
 
 
-### Step 2: Group priors estimation
+### Step 2: Group priors estimation [optional. Skip if the user uses our pre-trained group priors]
 ----
 
 To generate the individual parcellation, MSHBMs need to estimate group priors first. We provide two sets of group priors for data in `fsaverage6` space and `fs_LR_32k` space, which were generated by 40 HCP subjects:
@@ -355,7 +410,7 @@ contains the spatial radius mask for the group-level parcellation.
     
     + `<output_dir>/profile_list/training_set/sess?.txt`
 
-	for data in `fs_LR_32k`.
+    for data in `fs_LR_32k`.
     
 contain functional connectivity profiles.
 
@@ -437,20 +492,20 @@ Assuming each validation subject has `T` sessions, the individual parcellation w
     
     for data in `fsaverage6`  or
     
-    + `<output_dir>/profile_list/test_set/sess?.txt`
+    + `<output_dir>/profile_list/validation_set/sess?.txt`
 
-	for data in `fs_LR_32k`.
+    for data in `fs_LR_32k`.
     
 We will use the remaining `T-T1` sessions to compute the homogeneity metric, the fMRI files of the remaining sessions should be saved in:
 
 - **`<output_dir>/data_list/validation_set/fMRI_list`**
-	+ `<output_dir>/data_list/validation_set/fMRI_list/lh_sub?.txt`
-	+ `<output_dir>/data_list/validation_set/fMRI_list/rh_sub?.txt`
+    + `<output_dir>/data_list/validation_set/fMRI_list/lh_sub?.txt`
+    + `<output_dir>/data_list/validation_set/fMRI_list/rh_sub?.txt`
 
-	for data in `fsaverage6`  or
+    for data in `fsaverage6`  or
     
     + `<output_dir>/data_list/validation_set/fMRI_list/sub?.txt`
-	
+
     for data in `fs_LR_32k`.
 
 - **`<output_dir>/gradient_list/validation_set` [only needed for gMSHBM]**
@@ -461,7 +516,7 @@ contain diffusion embedding matrices of RSFC gradients.
 
 In the terminal:
 ```
-cd $CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step3_generate_ind_parcellationstions
+cd $CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step3_generate_ind_parcellations
 ```
 
 Start Matlab, in Matlab command window, the user need to specify the following inputs:
@@ -469,7 +524,7 @@ Start Matlab, in Matlab command window, the user need to specify the following i
 **Input: (string)**
 + `output_dir`: output directory.
 + `mesh`: data surface space. For exammple, `'fsaverage6'` or `'fs_LR_32k'`.
-+ `num_sessions`: number of sessions the user want to use to estimate the priors.
++ `num_sess`: number of sessions the user want to use to estimate the priors.
 + `num_clusters`: number of networks.
 + `subid`: the validation subject number, for example, `'4'` indicates the 4th subject in the validation set profile list.
 + `w`: the weight of group spatial prior `Params.theta`. For example, `'100'`. A large `w` indicates strong weight of `Params.theta`. The estimated individual-level parcellation will be very similar to the group-level parcellation with very large `w`.
@@ -486,7 +541,7 @@ c_set = <a set of parameters for c> % e.g. c_set = [30 40 50 60];
 for i = 1:length(w_set)
     for j = 1:length(c_set)
         for sub = 1:num_validation_subjects
-            homo_with_weight(sub,:) = CBIG_ArealMSHBM_parameters_validation(output_dir,mesh,num_sess,num_clusters,num2str(sub), num2str(w_set(i)),num2str(c_set(j)),method);
+            homo_with_weight(sub,:) = CBIG_ArealMSHBM_parameters_validation(output_dir,mesh,num_sess,num_clusters,num2str(sub), num2str(w_set(i)),num2str(c_set(j)),num2str(beta),method);
         end
         homo(i,j) = mean(mean(homo_with_weight));
     end
@@ -529,7 +584,7 @@ contain diffusion embedding matrices of RSFC gradients.
     
 In the terminal:
 ```
-cd $CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step3_generate_ind_parcellationstions
+cd $CBIG_CODE_DIR/stable_projects/brain_parcellation/Kong2022_ArealMSHBM/step3_generate_ind_parcellations
 ```
 
 Start Matlab, in Matlab command window, the user need to specify the following inputs:
@@ -561,6 +616,16 @@ The generated individual parcellations will be saved under:
 
 Updates
 =======
+
+- Release v0.29.9 (07/03/2024): Add wrapper script to generate individual parcellations for single subject
+
+- Release v0.21.3 (17/1/2022)
+ 
+    1. Reorganize folder structure for Schaefer parcellation with Kong2022 17-network order.
+    
+    2. Modify path pointing to Schaefer parcellation with Kong2022 17-network order.
+
+    3. Remove redundant commands in a Kong2022_ArealMSHBM script for generating dMSHBM individual parcellation. 
 
 - Release v0.20.0 (31/5/2021)
  

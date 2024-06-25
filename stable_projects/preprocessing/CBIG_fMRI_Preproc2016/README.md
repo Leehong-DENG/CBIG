@@ -10,14 +10,17 @@ Kong R, Li J, Orban C, Sabuncu MR, Liu H, Schaefer A, Sun N, Zuo XN, Holmes AJ, 
 
 This folder contains a resting-state fMRI preprocessing pipeline written by CBIG group. Our preprocessing pipeline allows flexible preprocessing order by specifying the order of preprocessing steps in a configuration text file. The preprocessing steps include:
 - slice-time correction
-- motion correction
-- spatial distortion correction
+- motion correction ([respiratory pseudomotion filtering](https://github.com/ThomasYeoLab/CBIG/blob/master/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/respiratory_pseudomotion_filtering.md))
+- [spatial distortion correction](https://github.com/ThomasYeoLab/CBIG/blob/master/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/spatial_distortion_correction_readme.md)
+- [multi-echo denoising](https://github.com/ThomasYeoLab/CBIG/blob/master/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/multi_echo_tedana_readme.md)
 - intra-subject registration between T1 and T2* images
 - nuisance regression
 - temporal interpolation of censored frames
-- bandpass filtering
+- bandpass filtering ([recommendation of bandpass censoring](https://github.com/ThomasYeoLab/CBIG/blob/master/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/Recommendation_of_bandpass_censoring.md))
 - projections to standard surface & volumetric spaces
 - functional connectivity (FC) matrix computation
+
+**[IMPORTANT]** For FC metrics, we changed our default parcellation to [Yan2023_homotopic](https://github.com/ThomasYeoLab/CBIG/tree/master/stable_projects/brain_parcellation/Yan2023_homotopic) with Kong2022 17 networks, 400 parcels resolution.
 
 We also provide multiple types of quality control (QC) figures for data inspection. For example:
 
@@ -25,6 +28,10 @@ We also provide multiple types of quality control (QC) figures for data inspecti
 - group-level dependency between QC-FC correlation and ROI-to-ROI Euclidean distance (e.g. right subfigure)
 
 <img src="readme_figures/README_figure.png" height="400" />
+
+**[IMPORTANT]** To run this preprocessing pipeline, you need to run recon-all to process T1 first. For recon-all details, please refer to [recon-all Freesurfer Wiki](https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all). 
+
+We recommend you use our wrapper function `CBIG_preproc_recon-all.csh` to run recon-all, which adds additional deoblique and reorient step before running recon-all. If you are sure your T1 image is plumb and in RPI orientation, you can run recon-all directly. You can use `3dinfo <input_file>`, and check Data Axes Tilt and Data Axes Approximate Orientation. Note that mri_info will use opposite notation for orientation. RPI in `3dinfo` is equivalent to LAS in `mri_info`.This preprocessing pipeline will also deoblique the input data and reorient them into RPI. 
 
 ----
 
@@ -43,14 +50,14 @@ Except for this project, if you want to use the code for other stable projects f
 - To download the version of the code that was last tested, you can either
 
   - visit this link:
-  [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.18.1-Update_stable_project_unit_test](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.18.1-Update_stable_project_unit_test)
+  [https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.7-Update_preproc](https://github.com/ThomasYeoLab/CBIG/releases/tag/v0.29.7-Update_preproc)
   
   or
   
   - run the following command, if you have Git installed
   
   ```
-  git checkout -b CBIG_fMRI_Preprocessing v0.18.1-Update_stable_project_unit_test
+  git checkout -b CBIG_fMRI_Preprocessing v0.29.7-Update_preproc
   ```
 
 ### Usage 
@@ -66,6 +73,10 @@ Except for this project, if you want to use the code for other stable projects f
   
   By using different configuration file, the user can change the ordering of preprocessing steps and the parameters passed in each step. To get more details of each step, the user can type in `./CBIG_preproc_xxx.csh -help` in command line.
   
+- Slice aquisition direction
+
+  Please confirm the slice aquisition direction. Usually it is from bottom to top or from top to bottom. The first row of the slice timing file or the slice order file refers to the bottom slice. 
+
 - The utilities folder contains all matlab functions that are called by the c shell scripts. The user can type in `help function_name` in a Matlab command window to see how each function works.
 
 - Check errors
@@ -88,63 +99,66 @@ Except for this project, if you want to use the code for other stable projects f
   NOTE: There is a bug in early builds of ANTs (before Aug 2014) that causes resampling for timeseries to be wrong. We have tested that our
 codes would work on ANTs version 2.2.0. 
 
+- MATLAB Runtime
+
+  User may run preprocessing in computing environment without licensed MATLAB version, but has MATLAB Runtime R2018b. Refer to `$CBIG_CODE_DIR/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/matlab_runtime/README.md` for instructions.
 ----
 
 ## Updates
 
-- Release v0.4.4 (20/10/2017): Initial release of CBIG fMRI preprocessing pipeline.
-- Release v0.4.5 (01/12/2017):
+- Release v0.29.7 (26/02/2024):
+   1. Add support for MATLAB Runtime. User can run the preprocessing pipeline with MATLAB Runtime instead of licensed MATLAB version.
 
-	1. Change motion correction (mcflirt) interpolation method from default **trilinear** to **spline**.
-	
-	2. Add an optional preprocessing step to perform despiking by **AFNI 3dDespike**.
-	
-	3. Add a preprocessing step to generate ROIs2ROIs functional connectivity matrix for input subject. 
-	
-- Release v0.4.6 (04/01/2018): 
-    
-    1. Add functionality: projecting fMRI data from subject-specific space to MNI 2mm space using ANTs. 
-    
-    2. Speed up censoring interpolation step by applying loose whole brain mask and optimizing the number of voxels processed each time. 
-    
-    3. Add some functionality to generate more QC plots (plots of mcflirt parameters; grey plots reflecting signal intensity in grey matter). 
-    
-    4. Force medial wall vertices to be NaN for the data in fsaverage surface space.
-    
-- Release v0.4.7 (16/01/2018):
+   2. Add support for BIDS formatted input: `CBIG_preproc_convert_input_BIDS.csh`.
 
-    1. Add `config` and `unit_tests` folders.
-    
-    2. Add project-specific prefix `preproc` for preprocessing scripts.
+   3. Make deoblique step optional. If user wants to run this step, user needs to include `CBIG_preproc_deoblique` in the config file.
 
-- Release v0.4.9 (31/01/2018):
+   4. Fix bugs in `CBIG_preproc_spatial_distortion_correction.csh`.
 
-    1. Fix broken symbolic link under `bin` folder.
-    
-    2. Add preprocessing scripts to plot QC-FC correlation versus ROIs to ROIs distance.
-    
-    3. Add an option to specify maximal memory usage in censoring interpolation step.
-    
-    4. Add `examples` folder.
-    
-- Release v0.4.11 (21/03/2018):
+   5. Move the output file (from `CBIG_preproc_fslmcflirt_outliers` step) `mc_template.nii.gz` to `<subject_id>/bold/mc/` folder.
 
-    1. Fix a bug: ventricles mask was not generated when the ventricles segmentation in anantomical space is <=100 voxels.
-    
-    2. Change the constraints of minimal number of voxels in ventricles/wm masks to be constraints of total volume in ventricles/wm masks.
-    
-    3. Modify functions `CBIG_ComputeROIs2ROIsCorrelationMatrix.m` (used by `CBIG_preproc_FCmetrics.m`) and `CBIG_preproc_QC_greyplot.m` so that they do not need matlab statistics toolbox now.
-    
-    4. In regression step, remove the exact zero columns of regressors.
-    
-- Release v0.6.2 (15/07/2018):
 
-    1. Update README.md for creating stand-alone repo.
-    
-    2. Add unit test: check correctness of 419x419 function connectivity matrix.
-    
-    3. Add scripts for all unit tests.
-    
+- Release v0.29.3 (28/06/2023):
+   1. Simple usage for single run cases.
+
+   2. Initial bold stem can be customized.
+
+   3. Fix bugs in CBIG_preproc_FCmetrics.m.
+
+   4. Remove unused flag in CBIG_antsReg_vol2vol.sh.
+
+- Release v0.29.1 (10/05/2023):
+   1. Support Yan2023 homotopic parcellation. 
+
+   2. Default FC matrix is changed to Yan2023 with Kong2022 17 networks, 400 parcels resolution. 
+
+   3. Update example config file: add additional CBIG_preproc_FC_metrics step to include both Yan2023 and Schaefer2018 parcellations. 
+
+   4. Fix bugs in plotting mcflirt parameters.
+
+- Release v0.22.3 (25/03/2022): Add multiecho denoising step into preprocessing pipeline.
+
+- Release v0.18.1 (20/01/2021):
+   1. Update unit test to accommodate to the new HPC.
+
+   2. Modify preprocessing scripts to make them compatible with the CSCHPC node structure.
+  
+- Release v0.17.2 (07/07/2020):
+     1. Bug fix: Fix 'out-of-bound' error of `CBIG_preproc_fslmcflirt_outlier.csh` due to incorrect extraction of number of frames from `$boldfile"_mc_tmp.nii.gz"`.
+
+   2. Bug fix: Fix the threshold for ventricle mask erosion in functional space from `$num_vent` (number of voxels) to `$vent_vol` (volume).
+
+     3. Add spatial distortion correction: CBIG_preproc_spatial_distortion_correction.csh.
+
+     4. Spatial distortion correction step requires a newer FSL version. Update the default FSL verision to 5.0.10.
+ 
+- Release v0.17.0 (19/02/2020): Avoid using absolute paths. Add new environment variables to avoid possible problems caused by hard-coded absolute paths.
+​
+- Release v0.13.1 (19/07/2019): Update references in the readme.
+​
+- Release v0.9.8 (30/04/2019):
+    1. Bug fix: the script `$CBIG_CODE_DIR/utilities/scripts/CBIG_antsReg_vol2vol.sh` was supposed to be released in v0.9.6 but not released, causing crash of `CBIG_preproc_native2mni_ants` step. In this version, the updated `$CBIG_CODE_DIR/utilities/scripts/CBIG_antsReg_vol2vol.sh` will be released.
+​
 - Release v0.9.6 (12/04/2019):
     1. Update censoring interpolation step to avoid crashing when there are vetices whose timeseries are all NaNs and to reduce run time if no frame needs to be censored.
     
@@ -160,24 +174,62 @@ codes would work on ANTs version 2.2.0.
     
     7. Remove `-censor` option in `CBIG_preproc_bandpass_fft.csh` and options of `-low_f` and `-high_f` in `CBIG_preproc_censor.csh`. Include a readme about bandpass filtering and censoring (i.e. `$CBIG_CODE_DIR/stable_projects/preprocessing/CBIG_fMRI_Preproc2016/Recommendation_of_bandpass_censoring.md`).
     
-- Release v0.9.8 (30/04/2019):
-    1. Bug fix: the script `$CBIG_CODE_DIR/utilities/scripts/CBIG_antsReg_vol2vol.sh` was supposed to be released in v0.9.6 but not released, causing crash of `CBIG_preproc_native2mni_ants` step. In this version, the updated `$CBIG_CODE_DIR/utilities/scripts/CBIG_antsReg_vol2vol.sh` will be released.
+- Release v0.6.2 (15/07/2018):
+​
+    1. Update README.md for creating stand-alone repo.
     
-- Release v0.13.1 (19/07/2019): Update references in the readme.
+    2. Add unit test: check correctness of 419x419 function connectivity matrix.
     
-- Release v0.17.0 (19/02/2020): Avoid using absolute paths. Add new environment variables to avoid possible problems caused by hard-coded absolute paths.
+    3. Add scripts for all unit tests.
+    
+- Release v0.4.11 (21/03/2018):
+​
+    1. Fix a bug: ventricles mask was not generated when the ventricles segmentation in anantomical space is <=100 voxels.
+    
+    2. Change the constraints of minimal number of voxels in ventricles/wm masks to be constraints of total volume in ventricles/wm masks.
+    
+    3. Modify functions `CBIG_ComputeROIs2ROIsCorrelationMatrix.m` (used by `CBIG_preproc_FCmetrics.m`) and `CBIG_preproc_QC_greyplot.m` so that they do not need matlab statistics toolbox now.
+    
+    4. In regression step, remove the exact zero columns of regressors.
+    
+- Release v0.4.9 (31/01/2018):
+​
+    1. Fix broken symbolic link under `bin` folder.
+    
+    2. Add preprocessing scripts to plot QC-FC correlation versus ROIs to ROIs distance.
+    
+    3. Add an option to specify maximal memory usage in censoring interpolation step.
+    
+    4. Add `examples` folder.
+    
+- Release v0.4.7 (16/01/2018):
+​
+    1. Add `config` and `unit_tests` folders.
+    
+    2. Add project-specific prefix `preproc` for preprocessing scripts.
+    
+- Release v0.4.6 (04/01/2018): 
+    
+    1. Add functionality: projecting fMRI data from subject-specific space to MNI 2mm space using ANTs. 
+    
+    2. Speed up censoring interpolation step by applying loose whole brain mask and optimizing the number of voxels processed each time. 
+    
+    3. Add some functionality to generate more QC plots (plots of mcflirt parameters; grey plots reflecting signal intensity in grey matter). 
+    
+    4. Force medial wall vertices to be NaN for the data in fsaverage surface space.
+    
+- Release v0.4.5 (01/12/2017):
+​
+    1. Change motion correction (mcflirt) interpolation method from default **trilinear** to **spline**.
 
-- Release v0.17.2 (07/07/2020):
-	1. Bug fix: Fix 'out-of-bound' error of `CBIG_preproc_fslmcflirt_outlier.csh` due to incorrect extraction of number of frames from `$boldfile"_mc_tmp.nii.gz"`.
-	2. Bug fix: Fix the threshold for ventricle mask erosion in functional space from `$num_vent` (number of voxels) to `$vent_vol` (volume).
-	3. Add spatial distortion correction: CBIG_preproc_spatial_distortion_correction.csh.
-	4. Spatial distortion correction step requires a newer FSL version. Update the default FSL verision to 5.0.10.
+    2. Add an optional preprocessing step to perform despiking by **AFNI 3dDespike**.
 
-- Release v0.18.1 (20/01/2021):
-  1. Update unit test to accommodate to the new HPC.
-  2. Modify preprocessing scripts to make them compatible with the CSCHPC node structure.
+    3. Add a preprocessing step to generate ROIs2ROIs functional connectivity matrix for input subject. 
+​
+- Release v0.4.4 (20/10/2017): Initial release of CBIG fMRI preprocessing pipeline.
+                       
 ----
 
 ## Bugs and Questions
 
-Please contact Ru(by) Kong at roo.cone@gmail.com, Jingwei Li at jingweili.sjtu.nus@gmail.com, Nanbo Sun at sun464879934@gmail.com, Shaoshi Zhang at 0zhangshaoshi0@gmail.com and Thomas Yeo at yeoyeo02@gmail.com.
+Please contact Xue Aihuiping at xueaihuiping@gmail.com, Yan Hongwei at yanhongwei_a@yahoo.com.sg, Shaoshi Zhang at 0zhangshaoshi0@gmail.com, Ru(by) Kong at roo.cone@gmail.com and Thomas Yeo at yeoyeo02@gmail.com.

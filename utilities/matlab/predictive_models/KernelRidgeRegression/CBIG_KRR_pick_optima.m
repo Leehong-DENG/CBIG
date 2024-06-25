@@ -103,6 +103,19 @@ function [optimal_acc, optimal_kernel, optimal_lambda, optimal_threshold] = ...
 %     A #TestFolds x #TargetVariable vector of optimal threshold for the
 %     case of bin_flag == 1 of each test fold and each measure to predict.
 %     If bin_flag == 0, then every entry of optimal_threshold is NaN.
+%
+%   - y_predict_concat (saved in final result mat file)
+%     A #TotalSubjects x #TargetVariable matrix of the predicted target variable for 
+%     each subject.
+%
+%   - optimal_stats (saved in final result mat file)
+%     A struct containing a #TestFolds x #TargetVariable matrix containing the 
+%     prediction for each possible accuracy metric (eg. corr, MAE, etc).
+%
+%   - y_pred_train (saved in final result mat file)
+%     A cell array of size equal to #TestFolds. Each cell contains a matrix of size
+%     #TrainingSubjects x #TargetVariable element of the predicted target variable 
+%     for the training subjects of each fold.
 %     
 % Written by CBIG under MIT license: https://github.com/ThomasYeoLab/CBIG/blob/master/LICENSE.md
 % Author: Jingwei Li and Ru(by) Kong
@@ -160,6 +173,7 @@ for test_fold = 1:num_test_folds
                 lambda_idx, threshold_idx}(metric_ind,i);
         end
         y_predict{test_fold}(:,i) = testloop.y_p{FSM_idx, lambda_idx, threshold_idx}{i};
+        y_pred_train{test_fold}(:,i) = testloop.y_pred_train{FSM_idx, lambda_idx, threshold_idx}{i};
         if(num_test_folds==1)
             y_predict_concat(:,i) = testloop.y_p{FSM_idx, lambda_idx, threshold_idx}{i};
         else
@@ -170,7 +184,7 @@ for test_fold = 1:num_test_folds
 end
 
 save(fullfile(data_dir, ['final_result' stem '.mat']), 'y_predict_concat', 'optimal_kernel', ...
-    'optimal_lambda', 'optimal_threshold', 'optimal_acc', 'optimal_stats')
+    'optimal_lambda', 'optimal_threshold', 'optimal_acc', 'optimal_stats', 'y_pred_train')
 
 
 end
